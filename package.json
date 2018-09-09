@@ -1,0 +1,22 @@
+{
+  "name": "sqd-fetch",
+  "version": "1.0.0",
+  "description": "A front-end library for minimal, clean API calls",
+  "main": "dist/index.js",
+  "author": "SquadLocker",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^10.9.4",
+    "camelize": "^1.0.0",
+    "decamelize": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.2",
+    "jest": "^23.5.0",
+    "ts-jest": "^23.1.4",
+    "typescript": "^3.0.3"
+  },
+  "scripts": {
+    "test": "jest"
+  }
+}
