@@ -1,16 +1,16 @@
 import { FetchOptions } from './FetchOptions';
 
 export interface FetchMethod {
-	(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
+  (url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
 }
 
 export default interface IApi {
-	readonly apiRoot: string;
-	readonly apiRequiresAuth: boolean;
+  readonly apiRoot: string;
+  readonly apiRequiresAuth: boolean;
 
-	get: FetchMethod;
-	post: FetchMethod;
-	put: FetchMethod;
-	patch: FetchMethod;
-	delete: FetchMethod;
+  get: FetchMethod;
+  post: FetchMethod;
+  put: FetchMethod;
+  patch: FetchMethod;
+  delete: FetchMethod;
 }
