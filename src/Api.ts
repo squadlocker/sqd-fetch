@@ -1,5 +1,5 @@
 import IApi, { FetchMethod } from './IApi';
-import { FetchOptions, InternalFetch } from './FetchOptions';
+import { FetchOptions, InternalFetchOptions } from './FetchOptions';
 import { camelizeObject, hyphenizeObject } from './util/camelizeObject';
 import { HttpMethods, AuthSchemes } from './Enums';
 import AuthService from './AuthService';
@@ -8,7 +8,6 @@ export default class Api implements IApi {
   readonly apiRoot: string;
   readonly apiRequiresAuth: boolean;
   private authService: AuthService;
-  // TODO: implement auth / token management
 
   constructor(apiRoot: string, requiresAuth: boolean, getToken: Function, authScheme: AuthSchemes = AuthSchemes.Bearer) {
     this.apiRoot = apiRoot;
@@ -16,7 +15,7 @@ export default class Api implements IApi {
     this.authService = new AuthService(authScheme, getToken)
   }
 
-  private async fetch(url: string, options: FetchOptions & InternalFetch, apiUsesHyphens?: boolean): Promise<any> {
+  private async fetch(url: string, options: FetchOptions & InternalFetchOptions, apiUsesHyphens?: boolean): Promise<any> {
     if (this.apiRequiresAuth) {
       this.authService.setToken();
       options.headers.Authentication = `${this.authService.authScheme} ${this.authService.token}`;
@@ -24,7 +23,7 @@ export default class Api implements IApi {
 
     // when working with certain frameworks, e.g. Rails, apis will expect and return objects where properties
     // are in hypen-case. 
-    if (!!options.body && apiUsesHyphens) {
+    if (apiUsesHyphens) {
       options.body = hyphenizeObject(options.body);
     }
 
@@ -47,38 +46,38 @@ export default class Api implements IApi {
       return { status: 204, success: true };
     }
 
-    const json = await response.json();
+    const json: Promise<any> = await response.json();
     if (!apiUsesHyphens) return json;
     return camelizeObject(json);
   }
 
   async get(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetch = this.createInternalFetch(HttpMethods.GET, options);
+    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.GET, options);
     return this.fetch(url, fetchOptions, apiUsesHyphens);
   }
 
   async post(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetch = this.createInternalFetch(HttpMethods.POST, options);
+    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.POST, options);
     return this.fetch(url, fetchOptions, apiUsesHyphens);
   }
 
   async put(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetch = this.createInternalFetch(HttpMethods.PUT, options);
+    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.PUT, options);
     return this.fetch(url, fetchOptions, apiUsesHyphens);
   }
 
   async patch(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetch = this.createInternalFetch(HttpMethods.PATCH, options);
+    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.PATCH, options);
     return this.fetch(url, fetchOptions, apiUsesHyphens);
   }
 
   async delete(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetch = this.createInternalFetch(HttpMethods.DELETE, options);
+    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.DELETE, options);
     return this.fetch(url, fetchOptions, apiUsesHyphens);
   }
 
-  private createInternalFetch(method: HttpMethods, options?: FetchOptions): InternalFetch {
-    return options ? { ...options, method, headers: {} } : { method, headers: {} };
+  private createInternalFetch(method: HttpMethods, options?: FetchOptions): InternalFetchOptions {
+    return options ? { ...options, method, headers: {}, body: options.body || {} } : { method, headers: {}, body: {} };
   }
 }
 

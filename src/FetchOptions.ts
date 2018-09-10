@@ -1,13 +1,14 @@
 import { HttpMethods } from "./Enums";
 
 export interface FetchOptions {
-  body?: object;
+  body: object;
   [prop: string]: any;
 }
 
-export interface InternalFetch {
+export interface InternalFetchOptions {
   method: HttpMethods;
   headers: FetchHeaders;
+  body: object;
   [prop: string]: any;
 }
 

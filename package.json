@@ -17,6 +17,7 @@
     "typescript": "^3.0.3"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "clean": "rm -rf dist/*"
   }
 }
