@@ -5,3 +5,8 @@ export enum HttpMethods {
   PATCH = 'PATCH',
   DELETE = 'DELETE'
 }
+
+export enum AuthSchemes {
+  Basic = 'Basic',
+  Bearer = 'Bearer'
+}

@@ -7,5 +7,11 @@ export interface FetchOptions {
 
 export interface InternalFetch {
   method: HttpMethods;
+  headers: FetchHeaders;
   [prop: string]: any;
+}
+
+export interface FetchHeaders {
+  Authentication?: string;
+  'Content-Type'?: string;
 }

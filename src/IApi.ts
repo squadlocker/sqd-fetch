@@ -1,4 +1,5 @@
 import { FetchOptions } from './FetchOptions';
+import AuthService from './AuthService';
 
 export interface FetchMethod {
   (url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
