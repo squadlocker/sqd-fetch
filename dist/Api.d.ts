@@ -7,11 +7,11 @@ export default class Api implements IApi {
     private authService;
     constructor(apiRoot: string, requiresAuth: boolean, getToken: Function, authScheme?: AuthSchemes);
     private fetch;
-    get(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
-    post(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
-    put(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
-    patch(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
-    delete(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any>;
-    private createInternalFetch;
+    get(url: string, options?: FetchOptions): Promise<any>;
+    post(url: string, options?: FetchOptions): Promise<any>;
+    put(url: string, options?: FetchOptions): Promise<any>;
+    patch(url: string, options?: FetchOptions): Promise<any>;
+    delete(url: string, options?: FetchOptions): Promise<any>;
+    private createRequestInit;
 }
 //# sourceMappingURL=Api.d.ts.map

@@ -3,25 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const camelizeObject_1 = require("./util/camelizeObject");
 const Enums_1 = require("./Enums");
 const AuthService_1 = __importDefault(require("./AuthService"));
 class Api {
-    // TODO: implement auth / token management
     constructor(apiRoot, requiresAuth, getToken, authScheme = Enums_1.AuthSchemes.Bearer) {
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
         this.authService = new AuthService_1.default(authScheme, getToken);
     }
-    async fetch(url, options, apiUsesHyphens) {
+    async fetch(url, options) {
         if (this.apiRequiresAuth) {
             this.authService.setToken();
-            options.headers.Authentication = `${this.authService.authScheme} ${this.authService.token}`;
-        }
-        // when working with certain frameworks, e.g. Rails, apis will expect and return objects where properties
-        // are in hypen-case. 
-        if (apiUsesHyphens) {
-            options.body = camelizeObject_1.hyphenizeObject(options.body);
+            options.headers = Object.assign({}, options.headers, { Authorization: `${this.authService.authScheme} ${this.authService.token}` });
         }
         const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
         const request = new Request(root + url, options);
@@ -39,32 +32,31 @@ class Api {
             return { status: 204, success: true };
         }
         const json = await response.json();
-        if (!apiUsesHyphens)
-            return json;
-        return camelizeObject_1.camelizeObject(json);
+        return json;
     }
-    async get(url, options, apiUsesHyphens) {
-        const fetchOptions = this.createInternalFetch(Enums_1.HttpMethods.GET, options);
-        return this.fetch(url, fetchOptions, apiUsesHyphens);
+    async get(url, options) {
+        const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.GET, options);
+        return this.fetch(url, fetchOptions);
     }
-    async post(url, options, apiUsesHyphens) {
-        const fetchOptions = this.createInternalFetch(Enums_1.HttpMethods.POST, options);
-        return this.fetch(url, fetchOptions, apiUsesHyphens);
+    async post(url, options) {
+        const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.POST, options);
+        return this.fetch(url, fetchOptions);
     }
-    async put(url, options, apiUsesHyphens) {
-        const fetchOptions = this.createInternalFetch(Enums_1.HttpMethods.PUT, options);
-        return this.fetch(url, fetchOptions, apiUsesHyphens);
+    async put(url, options) {
+        const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.PUT, options);
+        return this.fetch(url, fetchOptions);
     }
-    async patch(url, options, apiUsesHyphens) {
-        const fetchOptions = this.createInternalFetch(Enums_1.HttpMethods.PATCH, options);
-        return this.fetch(url, fetchOptions, apiUsesHyphens);
+    async patch(url, options) {
+        const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.PATCH, options);
+        return this.fetch(url, fetchOptions);
     }
-    async delete(url, options, apiUsesHyphens) {
-        const fetchOptions = this.createInternalFetch(Enums_1.HttpMethods.DELETE, options);
-        return this.fetch(url, fetchOptions, apiUsesHyphens);
+    async delete(url, options) {
+        const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.DELETE, options);
+        return this.fetch(url, fetchOptions);
     }
-    createInternalFetch(method, options) {
-        return options ? Object.assign({}, options, { method, headers: {}, body: options.body || {} }) : { method, headers: {}, body: {} };
+    createRequestInit(method, options) {
+        const headers = options && options.headers ? options.headers : {};
+        return options ? Object.assign({}, options, { method, headers, body: options.body }) : { method, headers };
     }
 }
 exports.default = Api;

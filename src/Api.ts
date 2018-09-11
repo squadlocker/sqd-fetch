@@ -1,5 +1,5 @@
 import IApi, { FetchMethod } from './IApi';
-import { FetchOptions, InternalFetchOptions } from './FetchOptions';
+import { FetchOptions } from './FetchOptions';
 import { camelizeObject, hyphenizeObject } from './util/camelizeObject';
 import { HttpMethods, AuthSchemes } from './Enums';
 import AuthService from './AuthService';
@@ -15,16 +15,13 @@ export default class Api implements IApi {
     this.authService = new AuthService(authScheme, getToken)
   }
 
-  private async fetch(url: string, options: FetchOptions & InternalFetchOptions, apiUsesHyphens?: boolean): Promise<any> {
+  private async fetch(url: string, options: RequestInit): Promise<any> {
     if (this.apiRequiresAuth) {
       this.authService.setToken();
-      options.headers.Authentication = `${this.authService.authScheme} ${this.authService.token}`;
-    }
-
-    // when working with certain frameworks, e.g. Rails, apis will expect and return objects where properties
-    // are in hypen-case. 
-    if (apiUsesHyphens) {
-      options.body = hyphenizeObject(options.body);
+      options.headers = {
+        ...options.headers,
+        Authorization: `${this.authService.authScheme} ${this.authService.token}`
+      };
     }
 
     const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
@@ -47,37 +44,37 @@ export default class Api implements IApi {
     }
 
     const json: Promise<any> = await response.json();
-    if (!apiUsesHyphens) return json;
-    return camelizeObject(json);
+    return json;
   }
 
-  async get(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.GET, options);
-    return this.fetch(url, fetchOptions, apiUsesHyphens);
+  async get(url: string, options?: FetchOptions): Promise<any> {
+    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.GET, options);
+    return this.fetch(url, fetchOptions);
   }
 
-  async post(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.POST, options);
-    return this.fetch(url, fetchOptions, apiUsesHyphens);
+  async post(url: string, options?: FetchOptions): Promise<any> {
+    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.POST, options);
+    return this.fetch(url, fetchOptions);
   }
 
-  async put(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.PUT, options);
-    return this.fetch(url, fetchOptions, apiUsesHyphens);
+  async put(url: string, options?: FetchOptions): Promise<any> {
+    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PUT, options);
+    return this.fetch(url, fetchOptions);
   }
 
-  async patch(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.PATCH, options);
-    return this.fetch(url, fetchOptions, apiUsesHyphens);
+  async patch(url: string, options?: FetchOptions): Promise<any> {
+    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PATCH, options);
+    return this.fetch(url, fetchOptions);
   }
 
-  async delete(url: string, options?: FetchOptions, apiUsesHyphens?: boolean): Promise<any> {
-    const fetchOptions: InternalFetchOptions = this.createInternalFetch(HttpMethods.DELETE, options);
-    return this.fetch(url, fetchOptions, apiUsesHyphens);
+  async delete(url: string, options?: FetchOptions): Promise<any> {
+    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.DELETE, options);
+    return this.fetch(url, fetchOptions);
   }
 
-  private createInternalFetch(method: HttpMethods, options?: FetchOptions): InternalFetchOptions {
-    return options ? { ...options, method, headers: {}, body: options.body || {} } : { method, headers: {}, body: {} };
+  private createRequestInit(method: HttpMethods, options?: FetchOptions): RequestInit {
+    const headers = options && options.headers ? options.headers : {};
+    return options ? { ...options, method, headers, body: options.body } : { method, headers };
   }
 }
 

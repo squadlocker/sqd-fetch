@@ -1,18 +1,11 @@
 import { HttpMethods } from "./Enums";
 
 export interface FetchOptions {
-  body: object;
-  [prop: string]: any;
-}
-
-export interface InternalFetchOptions {
-  method: HttpMethods;
-  headers: FetchHeaders;
-  body: object;
+  headers?: FetchHeaders;
+  body: string; // need to use JSON.stringify before passing
   [prop: string]: any;
 }
 
 export interface FetchHeaders {
-  Authentication?: string;
-  'Content-Type'?: string;
+  [prop: string]: string;
 }
