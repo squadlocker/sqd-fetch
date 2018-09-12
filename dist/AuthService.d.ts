@@ -1,9 +1,10 @@
 import { AuthSchemes } from "./Enums";
 export default class AuthService {
     readonly authScheme: AuthSchemes;
-    private readonly _getToken;
-    token?: string;
+    private readonly _retrieveToken;
+    private _token?;
     constructor(authScheme: AuthSchemes, getToken: () => string);
     setToken(): void;
+    getToken: () => string | undefined;
 }
 //# sourceMappingURL=AuthService.d.ts.map

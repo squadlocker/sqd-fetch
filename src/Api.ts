@@ -25,7 +25,7 @@ export default class Api implements IApi {
       this.authService.setToken();
       options.headers = {
         ...options.headers,
-        Authorization: `${this.authService.authScheme} ${this.authService.token}`
+        Authorization: `${this.authService.authScheme} ${this.authService.getToken()}`
       };
     }
 

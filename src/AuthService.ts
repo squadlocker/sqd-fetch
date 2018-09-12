@@ -2,15 +2,17 @@ import { AuthSchemes } from "./Enums";
 
 export default class AuthService {
   readonly authScheme: AuthSchemes;
-  private readonly _getToken: () => string;
-  token?: string;
+  private readonly _retrieveToken: () => string;
+  private _token?: string;
 
   constructor(authScheme: AuthSchemes, getToken: () => string) {
     this.authScheme = authScheme;
-    this._getToken = getToken;
+    this._retrieveToken = getToken;
   }
 
   setToken(): void {
-    this.token = this._getToken();
+    this._token = this._retrieveToken();
   }
+
+  getToken = (): string | undefined => this._token;
 }

@@ -19,7 +19,7 @@ class Api {
                 throw new Error('Api requires authentication, but AuthService was not initialized.');
             }
             this.authService.setToken();
-            options.headers = Object.assign({}, options.headers, { Authorization: `${this.authService.authScheme} ${this.authService.token}` });
+            options.headers = Object.assign({}, options.headers, { Authorization: `${this.authService.authScheme} ${this.authService.getToken()}` });
         }
         const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
         const request = new Request(root + url, options);

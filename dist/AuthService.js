@@ -2,11 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class AuthService {
     constructor(authScheme, getToken) {
+        this.getToken = () => this._token;
         this.authScheme = authScheme;
-        this._getToken = getToken;
+        this._retrieveToken = getToken;
     }
     setToken() {
-        this.token = this._getToken();
+        this._token = this._retrieveToken();
     }
 }
 exports.default = AuthService;
