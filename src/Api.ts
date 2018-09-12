@@ -6,13 +6,18 @@ import AuthService from './AuthService';
 export default class Api implements IApi {
   readonly apiRoot: string;
   readonly apiRequiresAuth: boolean;
+  hasAuthService: boolean = false;
   private authService?: AuthService;
 
   constructor(apiRoot: string, requiresAuth: boolean, getToken?: () => string, authScheme: AuthSchemes = AuthSchemes.Bearer) {
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
-    if (requiresAuth && getToken) {
-      this.authService = new AuthService(authScheme, getToken)
+    if (requiresAuth) {
+      if (!getToken) {
+        throw new Error('Must pass token retrieval logic as a function if requiresAuth == true.');
+      }
+      this.authService = new AuthService(authScheme, getToken);
+      this.hasAuthService = true;
     }
   }
 
@@ -48,33 +53,32 @@ export default class Api implements IApi {
       return { status: 204, success: true };
     }
 
-    const json: Promise<any> = await response.json();
-    return json;
+    return await response.json();
   }
 
   async get(url: string, options?: FetchOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.GET, options);
-    return this.fetch(url, fetchOptions);
+    return await this.fetch(url, fetchOptions);
   }
 
   async post(url: string, options?: FetchOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.POST, options);
-    return this.fetch(url, fetchOptions);
+    return await this.fetch(url, fetchOptions);
   }
 
   async put(url: string, options?: FetchOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PUT, options);
-    return this.fetch(url, fetchOptions);
+    return await this.fetch(url, fetchOptions);
   }
 
   async patch(url: string, options?: FetchOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PATCH, options);
-    return this.fetch(url, fetchOptions);
+    return await this.fetch(url, fetchOptions);
   }
 
   async delete(url: string, options?: FetchOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.DELETE, options);
-    return this.fetch(url, fetchOptions);
+    return await this.fetch(url, fetchOptions);
   }
 
   private createRequestInit(method: HttpMethods, options?: FetchOptions): RequestInit {
