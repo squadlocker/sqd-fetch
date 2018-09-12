@@ -7,10 +7,15 @@ const Enums_1 = require("./Enums");
 const AuthService_1 = __importDefault(require("./AuthService"));
 class Api {
     constructor(apiRoot, requiresAuth, getToken, authScheme = Enums_1.AuthSchemes.Bearer) {
+        this.hasAuthService = false;
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
-        if (requiresAuth && getToken) {
+        if (requiresAuth) {
+            if (!getToken) {
+                throw new Error('Must pass token retrieval logic as a function if requiresAuth == true.');
+            }
             this.authService = new AuthService_1.default(authScheme, getToken);
+            this.hasAuthService = true;
         }
     }
     async fetch(url, options) {
@@ -36,28 +41,27 @@ class Api {
         if (response.status === 204) {
             return { status: 204, success: true };
         }
-        const json = await response.json();
-        return json;
+        return await response.json();
     }
     async get(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.GET, options);
-        return this.fetch(url, fetchOptions);
+        return await this.fetch(url, fetchOptions);
     }
     async post(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.POST, options);
-        return this.fetch(url, fetchOptions);
+        return await this.fetch(url, fetchOptions);
     }
     async put(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.PUT, options);
-        return this.fetch(url, fetchOptions);
+        return await this.fetch(url, fetchOptions);
     }
     async patch(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.PATCH, options);
-        return this.fetch(url, fetchOptions);
+        return await this.fetch(url, fetchOptions);
     }
     async delete(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.DELETE, options);
-        return this.fetch(url, fetchOptions);
+        return await this.fetch(url, fetchOptions);
     }
     createRequestInit(method, options) {
         const headers = options && options.headers ? options.headers : {};

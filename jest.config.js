@@ -7,5 +7,8 @@ module.exports = {
     "ts",
     "js"
   ],
-  "testEnvironment": "node"
+  // "testEnvironment": "node",
+  "setupFiles": [
+    "<rootDir>/__tests__/setup.js"
+  ]
 }

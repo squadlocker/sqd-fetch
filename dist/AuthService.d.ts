@@ -3,7 +3,7 @@ export default class AuthService {
     readonly authScheme: AuthSchemes;
     private readonly _retrieveToken;
     private _token?;
-    constructor(authScheme: AuthSchemes, getToken: () => string);
+    constructor(authScheme: AuthSchemes, retrieveToken: () => string);
     setToken(): void;
     getToken: () => string | undefined;
 }

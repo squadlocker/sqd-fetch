@@ -1,5 +1,4 @@
 import IApi, { FetchMethod } from './IApi';
-import { FetchOptions } from './FetchOptions';
 import { HttpMethods, AuthSchemes } from './Enums';
 import AuthService from './AuthService';
 
@@ -34,6 +33,7 @@ export default class Api implements IApi {
       };
     }
 
+
     const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
     const request = new Request(root + url, options);
 
@@ -56,32 +56,32 @@ export default class Api implements IApi {
     return await response.json();
   }
 
-  async get(url: string, options?: FetchOptions): Promise<any> {
+  async get(url: string, options?: RequestInit): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.GET, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async post(url: string, options?: FetchOptions): Promise<any> {
+  async post(url: string, options?: RequestInit): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.POST, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async put(url: string, options?: FetchOptions): Promise<any> {
+  async put(url: string, options?: RequestInit): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PUT, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async patch(url: string, options?: FetchOptions): Promise<any> {
+  async patch(url: string, options?: RequestInit): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PATCH, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async delete(url: string, options?: FetchOptions): Promise<any> {
+  async delete(url: string, options?: RequestInit): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.DELETE, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  private createRequestInit(method: HttpMethods, options?: FetchOptions): RequestInit {
+  private createRequestInit(method: HttpMethods, options?: RequestInit): RequestInit {
     const headers = options && options.headers ? options.headers : {};
     return options ? { ...options, method, headers, body: options.body } : { method, headers };
   }

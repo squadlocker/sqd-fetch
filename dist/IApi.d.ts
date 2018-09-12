@@ -1,6 +1,5 @@
-import { FetchOptions } from './FetchOptions';
 export interface FetchMethod {
-    (url: string, options?: FetchOptions): Promise<any>;
+    (url: string, options?: RequestInit): Promise<any>;
 }
 export default interface IApi {
     readonly apiRoot: string;

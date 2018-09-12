@@ -5,9 +5,9 @@ export default class AuthService {
   private readonly _retrieveToken: () => string;
   private _token?: string;
 
-  constructor(authScheme: AuthSchemes, getToken: () => string) {
+  constructor(authScheme: AuthSchemes, retrieveToken: () => string) {
     this.authScheme = authScheme;
-    this._retrieveToken = getToken;
+    this._retrieveToken = retrieveToken;
   }
 
   setToken(): void {
