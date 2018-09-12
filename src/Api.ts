@@ -1,22 +1,27 @@
 import IApi, { FetchMethod } from './IApi';
 import { FetchOptions } from './FetchOptions';
-import { camelizeObject, hyphenizeObject } from './util/camelizeObject';
 import { HttpMethods, AuthSchemes } from './Enums';
 import AuthService from './AuthService';
 
 export default class Api implements IApi {
   readonly apiRoot: string;
   readonly apiRequiresAuth: boolean;
-  private authService: AuthService;
+  private authService?: AuthService;
 
-  constructor(apiRoot: string, requiresAuth: boolean, getToken: Function, authScheme: AuthSchemes = AuthSchemes.Bearer) {
+  constructor(apiRoot: string, requiresAuth: boolean, getToken?: () => string, authScheme: AuthSchemes = AuthSchemes.Bearer) {
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
-    this.authService = new AuthService(authScheme, getToken)
+    if (requiresAuth && getToken) {
+      this.authService = new AuthService(authScheme, getToken)
+    }
   }
 
   private async fetch(url: string, options: RequestInit): Promise<any> {
     if (this.apiRequiresAuth) {
+      if (!this.authService) {
+        throw new Error('Api requires authentication, but AuthService was not initialized.');
+      }
+
       this.authService.setToken();
       options.headers = {
         ...options.headers,

@@ -4,8 +4,8 @@ import { AuthSchemes } from './Enums';
 export default class Api implements IApi {
     readonly apiRoot: string;
     readonly apiRequiresAuth: boolean;
-    private authService;
-    constructor(apiRoot: string, requiresAuth: boolean, getToken: Function, authScheme?: AuthSchemes);
+    private authService?;
+    constructor(apiRoot: string, requiresAuth: boolean, getToken?: () => string, authScheme?: AuthSchemes);
     private fetch;
     get(url: string, options?: FetchOptions): Promise<any>;
     post(url: string, options?: FetchOptions): Promise<any>;

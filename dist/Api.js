@@ -9,10 +9,15 @@ class Api {
     constructor(apiRoot, requiresAuth, getToken, authScheme = Enums_1.AuthSchemes.Bearer) {
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
-        this.authService = new AuthService_1.default(authScheme, getToken);
+        if (requiresAuth && getToken) {
+            this.authService = new AuthService_1.default(authScheme, getToken);
+        }
     }
     async fetch(url, options) {
         if (this.apiRequiresAuth) {
+            if (!this.authService) {
+                throw new Error('Api requires authentication, but AuthService was not initialized.');
+            }
             this.authService.setToken();
             options.headers = Object.assign({}, options.headers, { Authorization: `${this.authService.authScheme} ${this.authService.token}` });
         }
