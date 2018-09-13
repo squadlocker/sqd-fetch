@@ -33,15 +33,25 @@ describe('Initialize API', () => {
   });
 });
 
-describe('API methods', () => {
+describe('public API methods', () => {
   beforeEach(() => {
     fetch.resetMocks();
     fetch.mockResponse(JSON.stringify({ success: true, result: "test result" }));
-  })
+  });
   
   const api = new Api(rootUrl, true, () => 'token');
 
-  describe('each method dispatches the correct HttpMethod', () => {
+  test('each public method triggers a fetch', async () => {
+    await api.get('test');
+    await api.post('test');
+    await api.put('test');
+    await api.patch('test');
+    await api.delete('test');
+    
+    expect(fetch.mock.calls.length).toBe(5);
+  });
+
+  describe('each public method dispatches the correct HttpMethod', () => {
     test('api.get uses HttpMethods.GET', async () => {
       const res = await api.get('test');
       expect(fetch.mock.calls[0][0].method).toBe(HttpMethods.GET);
@@ -97,5 +107,5 @@ describe('API methods', () => {
 
     const res = await api.post('test/upload', { body: formData });
     expect(fetch.mock.calls[0][0].body).toEqual(formData);
-  })
+  });
 });
