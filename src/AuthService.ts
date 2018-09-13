@@ -5,7 +5,7 @@ export default class AuthService {
   private readonly _retrieveToken: () => string;
   private _token?: string;
 
-  constructor(authScheme: AuthSchemes, retrieveToken: () => string) {
+  constructor(authScheme: AuthSchemes, retrieveToken: (...args: any[]) => string) {
     this.authScheme = authScheme;
     this._retrieveToken = retrieveToken;
   }

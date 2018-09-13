@@ -5,7 +5,7 @@ export default class Api implements IApi {
     readonly apiRequiresAuth: boolean;
     hasAuthService: boolean;
     private authService?;
-    constructor(apiRoot: string, requiresAuth: boolean, getToken?: () => string, authScheme?: AuthSchemes);
+    constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, authScheme?: AuthSchemes);
     private fetch;
     get(url: string, options?: RequestInit): Promise<any>;
     post(url: string, options?: RequestInit): Promise<any>;

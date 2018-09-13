@@ -1,1 +1,0 @@
-{"version":3,"file":"FetchOptions.d.ts","sourceRoot":"","sources":["../src/FetchOptions.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,YAAY;IAC3B,OAAO,CAAC,EAAE,YAAY,CAAC;IACvB,IAAI,EAAE,MAAM,CAAC;IACb,CAAC,IAAI,EAAE,MAAM,GAAG,GAAG,CAAC;CACrB;AAED,MAAM,WAAW,YAAY;IAC3B,CAAC,IAAI,EAAE,MAAM,GAAG,MAAM,CAAC;CACxB"}

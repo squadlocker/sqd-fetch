@@ -8,7 +8,7 @@ export default class Api implements IApi {
   hasAuthService: boolean = false;
   private authService?: AuthService;
 
-  constructor(apiRoot: string, requiresAuth: boolean, getToken?: () => string, authScheme: AuthSchemes = AuthSchemes.Bearer) {
+  constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, authScheme: AuthSchemes = AuthSchemes.Bearer) {
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
     if (requiresAuth) {
