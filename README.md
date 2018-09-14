@@ -1,9 +1,16 @@
 # SQD-FETCH
 
-A small front-end library for minimal, clean API calls. It wraps authentication, 
-sets the HTTP method, and handles errors, providing a clean interface that allows
-for consistent handling of catch blocks. All public methods of the main Api class 
-accept the same type of `options` object (`RequestInit` in TypeScript) as native fetch.
+A small front-end library for minimal, clean API calls. 
+
+It offers:
+- Full async/await support
+- TypeScript type definitions
+- Internal, customizable authentication handling
+- An interface for error handling
+- Public methods for each commonly-used HTTP method
+ 
+All public methods of the main Api class accept the same type of `options` object 
+(`RequestInit` in TypeScript) as native fetch.
 
 Each instance of the Api class has an `apiRoot` public member, which gets set during
 instantiation. This way, you can have one main object handle calls to each API,
