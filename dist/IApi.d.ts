@@ -9,5 +9,6 @@ export default interface IApi {
     put: FetchMethod;
     patch: FetchMethod;
     delete: FetchMethod;
+    fetch: (url: string, options: RequestInit) => Promise<any>;
 }
 //# sourceMappingURL=IApi.d.ts.map
