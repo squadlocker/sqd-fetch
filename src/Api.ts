@@ -1,43 +1,10 @@
 import IApi, { FetchMethod } from './IApi';
 import { HttpMethods, AuthSchemes } from './Enums';
 import AuthService from './AuthService';
+import AbstractApi from './AbstractApi';
 
-export default class Api implements IApi {
-  readonly apiRoot: string;
-  readonly apiRequiresAuth: boolean;
-  hasAuthService: boolean = false;
-  private authService?: AuthService;
-
-  constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, authScheme: AuthSchemes = AuthSchemes.Bearer) {
-    this.apiRoot = apiRoot;
-    this.apiRequiresAuth = requiresAuth;
-    if (requiresAuth) {
-      if (!getToken) {
-        throw new Error('Must pass token retrieval logic as a function if requiresAuth == true.');
-      }
-      this.authService = new AuthService(authScheme, getToken);
-      this.hasAuthService = true;
-    }
-  }
-
-  private async fetch(url: string, options: RequestInit): Promise<any> {
-    if (this.apiRequiresAuth) {
-      if (!this.authService) {
-        throw new Error('Api requires authentication, but AuthService was not initialized.');
-      }
-
-      this.authService.setToken();
-      options.headers = {
-        ...options.headers,
-        Authorization: `${this.authService.authScheme} ${this.authService.getToken()}`
-      };
-    }
-
-
-    const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
-    const request = new Request(root + url, options);
-
-    const response = await fetch(request);
+export default class Api extends AbstractApi implements IApi {
+  protected async resolve(response: Response): Promise<any> {
     if (!response.ok) {
       // allows us to handle error status codes AND custom error responses in a catch
       // block we pass in an Error object so that we can have access to the stacktrace.
@@ -54,36 +21,6 @@ export default class Api implements IApi {
     }
 
     return await response.json();
-  }
-
-  async get(url: string, options?: RequestInit): Promise<any> {
-    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.GET, options);
-    return await this.fetch(url, fetchOptions);
-  }
-
-  async post(url: string, options?: RequestInit): Promise<any> {
-    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.POST, options);
-    return await this.fetch(url, fetchOptions);
-  }
-
-  async put(url: string, options?: RequestInit): Promise<any> {
-    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PUT, options);
-    return await this.fetch(url, fetchOptions);
-  }
-
-  async patch(url: string, options?: RequestInit): Promise<any> {
-    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PATCH, options);
-    return await this.fetch(url, fetchOptions);
-  }
-
-  async delete(url: string, options?: RequestInit): Promise<any> {
-    const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.DELETE, options);
-    return await this.fetch(url, fetchOptions);
-  }
-
-  private createRequestInit(method: HttpMethods, options?: RequestInit): RequestInit {
-    const headers = options && options.headers ? options.headers : {};
-    return options ? { ...options, method, headers, body: options.body } : { method, headers };
   }
 }
 
