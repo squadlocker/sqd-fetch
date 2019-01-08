@@ -6,15 +6,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Enums_1 = require("./Enums");
 const AuthService_1 = __importDefault(require("./AuthService"));
 class AbstractApi {
-    constructor(apiRoot, requiresAuth, getToken, loadingProvider, authScheme = Enums_1.AuthSchemes.Bearer) {
+    constructor(apiRoot, requiresAuth, initOptions = {}) {
         this.hasAuthService = false;
+        const { getToken, authScheme, loadingProvider } = initOptions;
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
         if (requiresAuth) {
             if (!getToken) {
                 throw new Error('Must pass token retrieval logic as a function if requiresAuth == true.');
             }
-            this.authService = new AuthService_1.default(authScheme, getToken);
+            this.authService = new AuthService_1.default(authScheme || Enums_1.AuthSchemes.Bearer, getToken);
             this.hasAuthService = true;
         }
         if (!!loadingProvider) {

@@ -1,4 +1,4 @@
 export default interface ILoadingProvider {
-	onBegin: <T>() => T,
-	onResolve: <T>() => T
+	onBegin: () => void,
+	onResolve: () => void
 }

@@ -1,7 +1,21 @@
 import Api from '../src/Api';
 import { HttpMethods } from '../src/Enums';
+import ILoadingProvider from '../src/ILoadingProvider';
 
 const rootUrl = 'https://test.com';
+
+const loadingTestState = {
+  isLoading: false,
+  counter: 0
+};
+
+const beginLoading: () => void = () => {
+  loadingTestState.isLoading = true;
+  loadingTestState.counter++;
+};
+const endLoading: () => void = () => {
+  loadingTestState.isLoading = false;
+};
 
 describe('Initialize API', () => {
   const api = new Api(rootUrl, false);
@@ -9,7 +23,7 @@ describe('Initialize API', () => {
   test('apiRoot is the correct value', () => {
     expect(api.apiRoot).toBe(rootUrl);
   });
-  
+
   describe('when requiresAuth is false', () => {
     test('no AuthService has been bound to Api instance', () => {
       expect(api.hasAuthService).toBe(false);
@@ -24,12 +38,12 @@ describe('Initialize API', () => {
     });
 
     describe('and a getToken function is passed', () => {
-      const api1 = new Api(rootUrl, true, () => 'token');
+      const api1 = new Api(rootUrl, true, {getToken: () => 'token'});
       test('authService has been bound to Api instance', () => {
         expect(api1.hasAuthService).toBe(true);
       });
     })
-    
+
   });
 });
 
@@ -38,8 +52,15 @@ describe('public API methods', () => {
     fetch.resetMocks();
     fetch.mockResponse(JSON.stringify({ success: true, result: "test result" }));
   });
-  
-  const api = new Api(rootUrl, true, () => 'token');
+
+  const loadingProvider: ILoadingProvider = {
+    onBegin: beginLoading,
+    onResolve: endLoading
+  };
+
+  const api = new Api(rootUrl, true, {
+    getToken: () => 'token', loadingProvider
+  });
 
   test('each public method triggers a fetch', async () => {
     await api.get('test');
@@ -47,7 +68,7 @@ describe('public API methods', () => {
     await api.put('test');
     await api.patch('test');
     await api.delete('test');
-    
+
     expect(fetch.mock.calls.length).toBe(5);
   });
 
@@ -77,7 +98,7 @@ describe('public API methods', () => {
       expect(fetch.mock.calls[0][0].method).toBe(HttpMethods.DELETE);
     });
   });
-  
+
   test('authorization header is sent to fetch', async () => {
     const res = await api.get('test');
 
@@ -89,12 +110,12 @@ describe('public API methods', () => {
       'one': 'Peter Peter Pumpkin Eater',
       'two': 'fish'
     });
-    
-    const res = await api.post('test/create', { 
+
+    const res = await api.post('test/create', {
       headers: {
         'Content-Type': 'application/json'
       },
-      body 
+      body
     });
     expect(fetch.mock.calls[0][0].headers._headers['content-type']).toEqual(['application/json']);
     expect(JSON.parse(fetch.mock.calls[0][0].body)).toEqual(JSON.parse(body));
@@ -108,4 +129,14 @@ describe('public API methods', () => {
     const res = await api.post('test/upload', { body: formData });
     expect(fetch.mock.calls[0][0].body).toEqual(formData);
   });
+
+  test('ILoadingProvider.onBegin is called on every API call', async () => {
+    await api.get('test');
+    expect(loadingTestState.counter > 0);
+  });
+
+  test('loading state is false after resolution', async () => {
+    await api.get('test');
+    expect(loadingTestState.isLoading === false);
+  })
 });

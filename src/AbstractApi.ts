@@ -1,6 +1,7 @@
-import { HttpMethods, AuthSchemes } from './Enums';
+import {AuthSchemes, HttpMethods} from './Enums';
 import AuthService from './AuthService';
 import ILoadingProvider from './ILoadingProvider';
+import IInitOptions from './IInitOptions';
 
 export default abstract class AbstractApi {
   readonly apiRoot: string;
@@ -9,14 +10,20 @@ export default abstract class AbstractApi {
   private readonly authService?: AuthService;
   protected readonly loadingProvider?: ILoadingProvider;
 
-  constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, loadingProvider?: ILoadingProvider, authScheme: AuthSchemes = AuthSchemes.Bearer) {
+  constructor(apiRoot: string, requiresAuth: boolean, initOptions: IInitOptions = {}) {
+    const {
+      getToken,
+      authScheme,
+      loadingProvider
+    } = initOptions;
+
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
     if (requiresAuth) {
       if (!getToken) {
         throw new Error('Must pass token retrieval logic as a function if requiresAuth == true.');
       }
-      this.authService = new AuthService(authScheme, getToken);
+      this.authService = new AuthService(authScheme || AuthSchemes.Bearer, getToken);
       this.hasAuthService = true;
     }
 
