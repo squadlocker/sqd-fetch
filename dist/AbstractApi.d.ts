@@ -1,10 +1,12 @@
 import { HttpMethods, AuthSchemes } from './Enums';
+import ILoadingProvider from './ILoadingProvider';
 export default abstract class AbstractApi {
     readonly apiRoot: string;
     readonly apiRequiresAuth: boolean;
     hasAuthService: boolean;
-    private authService?;
-    constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, authScheme?: AuthSchemes);
+    private readonly authService?;
+    protected readonly loadingProvider?: ILoadingProvider;
+    constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, loadingProvider?: ILoadingProvider, authScheme?: AuthSchemes);
     protected abstract resolve(response: Response): Promise<any>;
     fetch(url: string, options: RequestInit): Promise<any>;
     get(url: string, options?: RequestInit): Promise<any>;

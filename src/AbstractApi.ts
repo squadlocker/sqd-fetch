@@ -1,14 +1,15 @@
-import IApi, { FetchMethod } from './IApi';
 import { HttpMethods, AuthSchemes } from './Enums';
 import AuthService from './AuthService';
+import ILoadingProvider from './ILoadingProvider';
 
 export default abstract class AbstractApi {
   readonly apiRoot: string;
   readonly apiRequiresAuth: boolean;
   hasAuthService: boolean = false;
-  private authService?: AuthService;
+  private readonly authService?: AuthService;
+  protected readonly loadingProvider?: ILoadingProvider;
 
-  constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, authScheme: AuthSchemes = AuthSchemes.Bearer) {
+  constructor(apiRoot: string, requiresAuth: boolean, getToken?: (...args: any[]) => string, loadingProvider?: ILoadingProvider, authScheme: AuthSchemes = AuthSchemes.Bearer) {
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
     if (requiresAuth) {
@@ -17,6 +18,13 @@ export default abstract class AbstractApi {
       }
       this.authService = new AuthService(authScheme, getToken);
       this.hasAuthService = true;
+    }
+
+    if (!!loadingProvider) {
+      if (!loadingProvider.onBegin || !loadingProvider.onResolve) {
+        throw new Error('Must provide an `onBegin` and and `onResolve` function to loadingProvider');
+      }
+      this.loadingProvider = loadingProvider;
     }
   }
 
@@ -28,6 +36,10 @@ export default abstract class AbstractApi {
         throw new Error('Api requires authentication, but AuthService was not initialized.');
       }
 
+      if (!!this.loadingProvider) {
+        this.loadingProvider.onBegin();
+      }
+
       this.authService.setToken();
       options.headers = {
         ...options.headers,
@@ -35,10 +47,18 @@ export default abstract class AbstractApi {
       };
     }
 
-
     const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
     const request = new Request(root + url, options);
-    const response = await fetch(request);
+    let response;
+    try {
+      response = await fetch(request);
+    } catch(e) {
+      if (!!this.loadingProvider) {
+        this.loadingProvider.onResolve();
+      }
+      return Promise.reject(e);
+    }
+
     return await this.resolve(response);
   }
 

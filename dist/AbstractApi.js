@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Enums_1 = require("./Enums");
 const AuthService_1 = __importDefault(require("./AuthService"));
 class AbstractApi {
-    constructor(apiRoot, requiresAuth, getToken, authScheme = Enums_1.AuthSchemes.Bearer) {
+    constructor(apiRoot, requiresAuth, getToken, loadingProvider, authScheme = Enums_1.AuthSchemes.Bearer) {
         this.hasAuthService = false;
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
@@ -17,18 +17,36 @@ class AbstractApi {
             this.authService = new AuthService_1.default(authScheme, getToken);
             this.hasAuthService = true;
         }
+        if (!!loadingProvider) {
+            if (!loadingProvider.onBegin || !loadingProvider.onResolve) {
+                throw new Error('Must provide an `onBegin` and and `onResolve` function to loadingProvider');
+            }
+            this.loadingProvider = loadingProvider;
+        }
     }
     async fetch(url, options) {
         if (this.apiRequiresAuth) {
             if (!this.authService) {
                 throw new Error('Api requires authentication, but AuthService was not initialized.');
             }
+            if (!!this.loadingProvider) {
+                this.loadingProvider.onBegin();
+            }
             this.authService.setToken();
             options.headers = Object.assign({}, options.headers, { Authorization: `${this.authService.authScheme} ${this.authService.getToken()}` });
         }
         const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
         const request = new Request(root + url, options);
-        const response = await fetch(request);
+        let response;
+        try {
+            response = await fetch(request);
+        }
+        catch (e) {
+            if (!!this.loadingProvider) {
+                this.loadingProvider.onResolve();
+            }
+            return Promise.reject(e);
+        }
         return await this.resolve(response);
     }
     async get(url, options) {

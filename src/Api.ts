@@ -1,10 +1,11 @@
-import IApi, { FetchMethod } from './IApi';
-import { HttpMethods, AuthSchemes } from './Enums';
-import AuthService from './AuthService';
+import IApi from './IApi';
 import AbstractApi from './AbstractApi';
 
 export default class Api extends AbstractApi implements IApi {
   protected async resolve(response: Response): Promise<any> {
+    if (!!this.loadingProvider) {
+      this.loadingProvider.onResolve();
+    }
     if (!response.ok) {
       // allows us to handle error status codes AND custom error responses in a catch
       // block we pass in an Error object so that we can have access to the stacktrace.
