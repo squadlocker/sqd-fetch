@@ -2,7 +2,7 @@ import IApi from './IApi';
 import AbstractApi from './AbstractApi';
 
 export default class Api extends AbstractApi implements IApi {
-  protected async resolve(response: Response, handleLoading: boolean | undefined): Promise<any> {
+  protected async resolve(response: Response, handleLoading: boolean): Promise<any> {
     if (!!this.loadingProvider && handleLoading) {
       this.loadingProvider.onResolve();
     }

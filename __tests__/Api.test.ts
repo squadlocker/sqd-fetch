@@ -138,6 +138,14 @@ describe('public API methods', () => {
       expect(loadingTestState.counter > 0);
     });
 
+    test('ILoadingProvider.onBegin is called if no handleLoading option is passed', async () => {
+      const expectedValue = counter + 1;
+
+      await api.get('test');
+      counter = loadingTestState.counter;
+      expect(counter === expectedValue);
+    });
+
     test('ILoadingProvider.onBegin is not called if handleLoading is false', async () => {
       await api.get('test', { handleLoading: false });
       expect(loadingTestState.counter === counter);

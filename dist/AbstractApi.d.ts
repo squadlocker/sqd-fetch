@@ -8,7 +8,7 @@ export default abstract class AbstractApi {
     private readonly authService?;
     protected readonly loadingProvider?: ILoadingProvider;
     constructor(apiRoot: string, requiresAuth: boolean, initOptions?: IInitOptions);
-    protected abstract resolve(response: Response, handleLoading: boolean | undefined): Promise<any>;
+    protected abstract resolve(response: Response, handleLoading: boolean): Promise<any>;
     fetch(url: string, options: IRequestOptions): Promise<any>;
     get(url: string, options?: IRequestOptions): Promise<any>;
     post(url: string, options?: IRequestOptions): Promise<any>;

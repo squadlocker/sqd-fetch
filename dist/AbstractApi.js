@@ -26,11 +26,18 @@ class AbstractApi {
         }
     }
     async fetch(url, options) {
+        // we should handle loading by default if there's a loading provider and no `handleLoading`
+        // key in our options object. Otherwise, if there is a loading provider, we go by the value of the
+        // handleLoading option. If no loadingProvider, we will never handle loading.
+        let handleLoading = false;
+        if (!!this.loadingProvider) {
+            handleLoading = !(options.hasOwnProperty('handleLoading') && options.handleLoading === false);
+        }
         if (this.apiRequiresAuth) {
             if (!this.authService) {
                 throw new Error('Api requires authentication, but AuthService was not initialized.');
             }
-            if (!!this.loadingProvider) {
+            if (handleLoading && !!this.loadingProvider) {
                 this.loadingProvider.onBegin();
             }
             this.authService.setToken();
@@ -43,12 +50,12 @@ class AbstractApi {
             response = await fetch(request);
         }
         catch (e) {
-            if (!!this.loadingProvider && options.handleLoading) {
+            if (handleLoading && !!this.loadingProvider) {
                 this.loadingProvider.onResolve();
             }
             return Promise.reject(e);
         }
-        return await this.resolve(response, options.handleLoading);
+        return await this.resolve(response, handleLoading);
     }
     async get(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.GET, options);
