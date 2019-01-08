@@ -35,9 +35,9 @@ export default abstract class AbstractApi {
     }
   }
 
-  protected abstract async resolve(response: Response): Promise<any>;
+  protected abstract async resolve(response: Response, handleLoading: boolean | undefined): Promise<any>;
 
-  async fetch(url: string, options: RequestInit): Promise<any> {
+  async fetch(url: string, options: IRequestOptions): Promise<any> {
     if (this.apiRequiresAuth) {
       if (!this.authService) {
         throw new Error('Api requires authentication, but AuthService was not initialized.');
@@ -60,36 +60,36 @@ export default abstract class AbstractApi {
     try {
       response = await fetch(request);
     } catch(e) {
-      if (!!this.loadingProvider) {
+      if (!!this.loadingProvider && options.handleLoading) {
         this.loadingProvider.onResolve();
       }
       return Promise.reject(e);
     }
 
-    return await this.resolve(response);
+    return await this.resolve(response, options.handleLoading);
   }
 
-  async get(url: string, options?: RequestInit): Promise<any> {
+  async get(url: string, options?: IRequestOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.GET, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async post(url: string, options?: RequestInit): Promise<any> {
+  async post(url: string, options?: IRequestOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.POST, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async put(url: string, options?: RequestInit): Promise<any> {
+  async put(url: string, options?: IRequestOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PUT, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async patch(url: string, options?: RequestInit): Promise<any> {
+  async patch(url: string, options?: IRequestOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.PATCH, options);
     return await this.fetch(url, fetchOptions);
   }
 
-  async delete(url: string, options?: RequestInit): Promise<any> {
+  async delete(url: string, options?: IRequestOptions): Promise<any> {
     const fetchOptions: RequestInit = this.createRequestInit(HttpMethods.DELETE, options);
     return await this.fetch(url, fetchOptions);
   }
@@ -98,6 +98,10 @@ export default abstract class AbstractApi {
     const headers = options && options.headers ? options.headers : {};
     return options ? { ...options, method, headers, body: options.body } : { method, headers };
   }
+}
+
+interface IRequestOptions extends RequestInit {
+  handleLoading?: boolean;
 }
 
 class FetchError extends Error {

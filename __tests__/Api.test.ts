@@ -130,13 +130,23 @@ describe('public API methods', () => {
     expect(fetch.mock.calls[0][0].body).toEqual(formData);
   });
 
-  test('ILoadingProvider.onBegin is called on every API call', async () => {
-    await api.get('test');
-    expect(loadingTestState.counter > 0);
+  describe('Loading provider', () => {
+    let counter: number;
+    test('ILoadingProvider.onBegin is called if handleLoading is true', async () => {
+      await api.get('test', { handleLoading: true });
+      counter = loadingTestState.counter;
+      expect(loadingTestState.counter > 0);
+    });
+
+    test('ILoadingProvider.onBegin is not called if handleLoading is false', async () => {
+      await api.get('test', { handleLoading: false });
+      expect(loadingTestState.counter === counter);
+    });
+
+    test('loading state is false after resolution', async () => {
+      await api.get('test', { handleLoading: true });
+      expect(loadingTestState.isLoading === false);
+    })
   });
 
-  test('loading state is false after resolution', async () => {
-    await api.get('test');
-    expect(loadingTestState.isLoading === false);
-  })
 });

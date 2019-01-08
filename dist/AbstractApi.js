@@ -43,12 +43,12 @@ class AbstractApi {
             response = await fetch(request);
         }
         catch (e) {
-            if (!!this.loadingProvider) {
+            if (!!this.loadingProvider && options.handleLoading) {
                 this.loadingProvider.onResolve();
             }
             return Promise.reject(e);
         }
-        return await this.resolve(response);
+        return await this.resolve(response, options.handleLoading);
     }
     async get(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.GET, options);
