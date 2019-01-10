@@ -64,15 +64,7 @@ export default abstract class AbstractApi {
 
     const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
     const request = new Request(root + url, options);
-    let response;
-    try {
-      response = await fetch(request);
-    } catch(e) {
-      if (handleLoading && !!this.loadingProvider) {
-        this.loadingProvider.onResolve();
-      }
-      return Promise.reject(e);
-    }
+    const response = await fetch(request);
 
     return await this.resolve(response, handleLoading);
   }

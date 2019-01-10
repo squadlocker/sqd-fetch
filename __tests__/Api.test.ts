@@ -129,32 +129,58 @@ describe('public API methods', () => {
     const res = await api.post('test/upload', { body: formData });
     expect(fetch.mock.calls[0][0].body).toEqual(formData);
   });
+});
 
-  describe('Loading provider', () => {
-    let counter: number;
-    test('ILoadingProvider.onBegin is called if handleLoading is true', async () => {
-      await api.get('test', { handleLoading: true });
-      counter = loadingTestState.counter;
-      expect(loadingTestState.counter > 0);
-    });
-
-    test('ILoadingProvider.onBegin is called if no handleLoading option is passed', async () => {
-      const expectedValue = counter + 1;
-
-      await api.get('test');
-      counter = loadingTestState.counter;
-      expect(counter === expectedValue);
-    });
-
-    test('ILoadingProvider.onBegin is not called if handleLoading is false', async () => {
-      await api.get('test', { handleLoading: false });
-      expect(loadingTestState.counter === counter);
-    });
-
-    test('loading state is false after resolution', async () => {
-      await api.get('test', { handleLoading: true });
-      expect(loadingTestState.isLoading === false);
-    })
+describe('Loading provider', () => {
+  beforeEach(() => {
+    fetch.resetMocks();
+    fetch.mockResponse(JSON.stringify({ success: true, result: "test result" }));
   });
 
+  const loadingProvider: ILoadingProvider = {
+    onBegin: beginLoading,
+    onResolve: endLoading
+  };
+
+  const api = new Api(rootUrl, true, {
+    getToken: () => 'token', loadingProvider
+  });
+
+  let counter: number;
+  test('ILoadingProvider.onBegin is called if handleLoading is true', async () => {
+    await api.get('test', { handleLoading: true });
+    counter = loadingTestState.counter;
+    expect(loadingTestState.counter > 0);
+  });
+
+  test('ILoadingProvider.onBegin is called if no handleLoading option is passed', async () => {
+    const expectedValue = counter + 1;
+
+    await api.get('test');
+    counter = loadingTestState.counter;
+    expect(counter === expectedValue);
+  });
+
+  test('ILoadingProvider.onBegin is not called if handleLoading is false', async () => {
+    await api.get('test', { handleLoading: false });
+    expect(loadingTestState.counter === counter);
+  });
+
+  test('loading state is false after resolution', async () => {
+    await api.get('test', { handleLoading: true });
+    expect(loadingTestState.isLoading === false);
+  })
+});
+
+describe('Error handling', () => {
+  beforeEach(() => {
+    fetch.resetMocks();
+  });
+
+  const api = new Api(rootUrl, false);
+  test('throws an error on a fetch error response', async () => {
+    fetch.mockReject(new Error('Not found.'),{ status: 404 });
+    await expect(api.get('test/fake-url'))
+      .rejects.toThrow('Not found.');
+  });
 });
