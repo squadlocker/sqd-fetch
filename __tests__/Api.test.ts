@@ -9,12 +9,17 @@ const loadingTestState = {
   counter: 0
 };
 
-const beginLoading: () => void = () => {
+const beginLoading = () => {
   loadingTestState.isLoading = true;
   loadingTestState.counter++;
 };
-const endLoading: () => void = () => {
+const endLoading = () => {
   loadingTestState.isLoading = false;
+};
+
+const loadingProvider: ILoadingProvider = {
+  onBegin: beginLoading,
+  onResolve: endLoading
 };
 
 describe('Initialize API', () => {
@@ -52,11 +57,6 @@ describe('public API methods', () => {
     fetch.resetMocks();
     fetch.mockResponse(JSON.stringify({ success: true, result: "test result" }));
   });
-
-  const loadingProvider: ILoadingProvider = {
-    onBegin: beginLoading,
-    onResolve: endLoading
-  };
 
   const api = new Api(rootUrl, true, {
     getToken: () => 'token', loadingProvider
@@ -133,54 +133,63 @@ describe('public API methods', () => {
 
 describe('Loading provider', () => {
   beforeEach(() => {
+    loadingTestState.counter = 0;
     fetch.resetMocks();
     fetch.mockResponse(JSON.stringify({ success: true, result: "test result" }));
   });
-
-  const loadingProvider: ILoadingProvider = {
-    onBegin: beginLoading,
-    onResolve: endLoading
-  };
 
   const api = new Api(rootUrl, true, {
     getToken: () => 'token', loadingProvider
   });
 
-  let counter: number;
   test('ILoadingProvider.onBegin is called if handleLoading is true', async () => {
+    const expected = loadingTestState.counter + 1;
     await api.get('test', { handleLoading: true });
-    counter = loadingTestState.counter;
-    expect(loadingTestState.counter > 0);
+    expect(loadingTestState.counter).toBe(expected);
   });
 
   test('ILoadingProvider.onBegin is called if no handleLoading option is passed', async () => {
-    const expectedValue = counter + 1;
+    const expectedValue = loadingTestState.counter + 1;
 
     await api.get('test');
-    counter = loadingTestState.counter;
-    expect(counter === expectedValue);
+    expect(loadingTestState.counter).toBe(expectedValue);
   });
 
   test('ILoadingProvider.onBegin is not called if handleLoading is false', async () => {
+    const initialValue = loadingTestState.counter;
     await api.get('test', { handleLoading: false });
-    expect(loadingTestState.counter === counter);
+    expect(loadingTestState.counter).toBe(initialValue);
   });
 
   test('loading state is false after resolution', async () => {
     await api.get('test', { handleLoading: true });
-    expect(loadingTestState.isLoading === false);
+    expect(loadingTestState.isLoading).toBe(false);
   })
 });
 
 describe('Error handling', () => {
   beforeEach(() => {
     fetch.resetMocks();
+    loadingTestState.counter = 0;
   });
 
-  const api = new Api(rootUrl, false);
+  const api = new Api(rootUrl, true, { getToken: () => 'token', loadingProvider });
+
   test('throws an error on a fetch error response', async () => {
     fetch.mockReject(new Error('Not found.'),{ status: 404 });
     await expect(api.get('test/fake-url'))
       .rejects.toThrow('Not found.');
   });
+
+  test('loading provider resolves on error', async () => {
+    const expectedCounter = loadingTestState.counter + 1;
+
+    fetch.mockReject(new Error('Internal service error.'), { status: 500 });
+
+    await expect(api.get('test'))
+      .rejects.toThrow('Internal service error.');
+    expect(loadingTestState.isLoading).toBe(false);
+
+    expect(loadingTestState.counter).toBe(expectedCounter);
+  })
 });

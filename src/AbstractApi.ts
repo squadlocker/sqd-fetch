@@ -64,8 +64,19 @@ export default abstract class AbstractApi {
 
     const root = this.apiRoot.endsWith('/') ? this.apiRoot : this.apiRoot + '/';
     const request = new Request(root + url, options);
-    const response = await fetch(request);
+    let response;
+    try {
+      response = await fetch(request);
+    } catch (e) {
+      if (!!this.loadingProvider && handleLoading) {
+        this.loadingProvider.onResolve();
+      }
 
+      throw e;
+    }
+
+    // if Promise.reject gets called for HTTP status code,
+    // the caller is expected to catch and handle it.
     return await this.resolve(response, handleLoading);
   }
 
