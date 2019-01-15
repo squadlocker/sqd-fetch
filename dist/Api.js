@@ -5,7 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const AbstractApi_1 = __importDefault(require("./AbstractApi"));
 class Api extends AbstractApi_1.default {
-    async resolve(response) {
+    async resolve(response, handleLoading) {
+        if (!!this.loadingProvider && handleLoading) {
+            this.loadingProvider.onResolve();
+        }
         if (!response.ok) {
             // allows us to handle error status codes AND custom error responses in a catch
             // block we pass in an Error object so that we can have access to the stacktrace.
