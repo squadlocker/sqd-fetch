@@ -16,7 +16,7 @@ class Api extends AbstractApi_1.default {
             // access any custom response body with err.response.json().then(json => {...})
             const e = new FetchError;
             e.response = response;
-            return Promise.reject(e);
+            throw e;
         }
         if (response.status === 204) {
             return { status: 204, success: true };
