@@ -14,7 +14,7 @@ export default class Api extends AbstractApi implements IApi {
       // access any custom response body with err.response.json().then(json => {...})
       const e = new FetchError;
       e.response = response;
-      throw e;
+      Promise.reject(e);
     }
 
     if (response.status === 204) {
