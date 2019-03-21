@@ -12,6 +12,11 @@ class Api extends AbstractApi_1.default {
         if (response.status === 204) {
             return { status: 204, success: true };
         }
+        if (!response.ok) {
+            const error = new FetchError("Failed request");
+            error.response = response;
+            throw error;
+        }
         return await response.json();
     }
 }
