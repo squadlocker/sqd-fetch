@@ -11,6 +11,12 @@ export default class Api extends AbstractApi implements IApi {
       return { status: 204, success: true };
     }
 
+    if (!response.ok) {
+      const error = new FetchError("Failed request");
+      error.response = response;
+      throw error;
+    }
+
     return await response.json();
   }
 }
