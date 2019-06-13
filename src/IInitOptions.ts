@@ -1,8 +1,8 @@
 import { AuthSchemes } from './Enums';
-import ILoadingProvider from './ILoadingProvider';
+import ISqdProvider from './ISqdProvider';
 
 export default interface IInitOptions {
 	getToken?: (...args: any[]) => string;
 	authScheme?: AuthSchemes;
-	loadingProvider?: ILoadingProvider;
+	sqdProvider?: ISqdProvider[];
 }

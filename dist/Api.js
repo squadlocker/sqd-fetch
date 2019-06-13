@@ -5,9 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const AbstractApi_1 = __importDefault(require("./AbstractApi"));
 class Api extends AbstractApi_1.default {
-    async resolve(response, handleLoading) {
-        if (!!this.loadingProvider && handleLoading) {
-            this.loadingProvider.onResolve();
+    async resolve(response, options) {
+        for (let i = this.sqdProvider.length - 1; i >= 0; i--) {
+            const provider = this.sqdProvider[i];
+            provider.onResolve(options, response);
         }
         if (response.status === 204) {
             return { status: 204, success: true };
