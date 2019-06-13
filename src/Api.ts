@@ -4,8 +4,8 @@ import IRequestOptions from './IRequestOptions';
 
 export default class Api extends AbstractApi implements IApi {
   protected async resolve(response: Response, options: IRequestOptions): Promise<any> {
-    for (let i = this.sqdProvider.length - 1; i >= 0; i--) {
-      const provider = this.sqdProvider[i];
+    for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+      const provider = this.sqdProviders[i];
       provider.onResolve(options, response);
     }
 

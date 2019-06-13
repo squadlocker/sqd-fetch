@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const AbstractApi_1 = __importDefault(require("./AbstractApi"));
 class Api extends AbstractApi_1.default {
     async resolve(response, options) {
-        for (let i = this.sqdProvider.length - 1; i >= 0; i--) {
-            const provider = this.sqdProvider[i];
+        for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+            const provider = this.sqdProviders[i];
             provider.onResolve(options, response);
         }
         if (response.status === 204) {

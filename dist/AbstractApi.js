@@ -9,7 +9,7 @@ class AbstractApi {
     constructor(apiRoot, requiresAuth, initOptions = {}) {
         this.hasAuthService = false;
         const { getToken, authScheme } = initOptions;
-        this.sqdProvider = [];
+        this.sqdProviders = [];
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
         if (requiresAuth) {
@@ -25,7 +25,7 @@ class AbstractApi {
             if (!this.authService) {
                 throw new Error('Api requires authentication, but AuthService was not initialized.');
             }
-            for (const provider of this.sqdProvider) {
+            for (const provider of this.sqdProviders) {
                 provider.onBegin(options);
             }
             this.authService.setToken();
@@ -38,8 +38,8 @@ class AbstractApi {
             response = await fetch(request);
         }
         catch (e) {
-            for (let i = this.sqdProvider.length - 1; i >= 0; i--) {
-                const provider = this.sqdProvider[i];
+            for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+                const provider = this.sqdProviders[i];
                 provider.onFail(options, response, e);
             }
             throw e;
@@ -74,24 +74,28 @@ class AbstractApi {
     }
     addSqdProvider(provider) {
         if (provider.onBegin && provider.onResolve && provider.onFail) {
-            this.sqdProvider.push(provider);
+            this.sqdProviders.push(provider);
         }
         return this;
     }
     hasSqdProvider(provider) {
-        return this.sqdProvider.includes(provider);
+        return this.sqdProviders.includes(provider);
     }
     indexOfSqdProvider(provider) {
-        return this.sqdProvider.indexOf(provider);
+        return this.sqdProviders.indexOf(provider);
     }
     deleteSqdProvider(provider) {
         const index = this.indexOfSqdProvider(provider);
+        if (index < 0)
+            return false;
         return this.deleteSqdProviderByIndex(index);
     }
     deleteSqdProviderByIndex(index) {
-        const length = this.sqdProvider.length;
-        this.sqdProvider.splice(index, 1);
-        return this.sqdProvider.length < length;
+        const length = this.sqdProviders.length;
+        if (index < 0 || index >= length)
+            return false;
+        this.sqdProviders.splice(index, 1);
+        return this.sqdProviders.length < length;
     }
 }
 exports.default = AbstractApi;

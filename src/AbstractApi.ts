@@ -9,7 +9,7 @@ export default abstract class AbstractApi {
   readonly apiRequiresAuth: boolean;
   hasAuthService: boolean = false;
   private readonly authService?: AuthService;
-  protected readonly sqdProvider: ISqdProvider[];
+  protected readonly sqdProviders: ISqdProvider[];
 
   constructor(apiRoot: string, requiresAuth: boolean, initOptions: IInitOptions = {}) {
     const {
@@ -17,7 +17,7 @@ export default abstract class AbstractApi {
       authScheme
     } = initOptions;
 
-    this.sqdProvider = [];
+    this.sqdProviders = [];
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
     if (requiresAuth) {
@@ -37,7 +37,7 @@ export default abstract class AbstractApi {
         throw new Error('Api requires authentication, but AuthService was not initialized.');
       }
 
-      for (const provider of this.sqdProvider) {
+      for (const provider of this.sqdProviders) {
         provider.onBegin(options);
       }
 
@@ -54,8 +54,8 @@ export default abstract class AbstractApi {
     try {
       response = await fetch(request);
     } catch (e) {
-      for (let i = this.sqdProvider.length - 1; i >= 0; i--) {
-        const provider = this.sqdProvider[i];
+      for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+        const provider = this.sqdProviders[i];
         provider.onFail(options, response, e);
       }
 
@@ -99,27 +99,29 @@ export default abstract class AbstractApi {
 
   public addSqdProvider(provider:ISqdProvider): AbstractApi {
     if (provider.onBegin && provider.onResolve && provider.onFail) {
-      this.sqdProvider.push(provider);
+      this.sqdProviders.push(provider);
     }
     return this;
   }
 
   public hasSqdProvider(provider:ISqdProvider): boolean {
-    return this.sqdProvider.includes(provider);
+    return this.sqdProviders.includes(provider);
   }
 
   public indexOfSqdProvider(provider:ISqdProvider): number {
-    return this.sqdProvider.indexOf(provider);
+    return this.sqdProviders.indexOf(provider);
   }
 
   public deleteSqdProvider(provider:ISqdProvider): boolean {
     const index = this.indexOfSqdProvider(provider);
+    if (index < 0) return false;
     return this.deleteSqdProviderByIndex(index);
   }
 
   public deleteSqdProviderByIndex(index:number): boolean {
-    const length = this.sqdProvider.length;
-    this.sqdProvider.splice(index, 1);
-    return this.sqdProvider.length < length;
+    const length = this.sqdProviders.length;
+    if (index < 0 || index >= length) return false;
+    this.sqdProviders.splice(index, 1);
+    return this.sqdProviders.length < length;
   }
 }

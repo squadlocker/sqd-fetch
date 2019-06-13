@@ -7,7 +7,7 @@ export default abstract class AbstractApi {
     readonly apiRequiresAuth: boolean;
     hasAuthService: boolean;
     private readonly authService?;
-    protected readonly sqdProvider: ISqdProvider[];
+    protected readonly sqdProviders: ISqdProvider[];
     constructor(apiRoot: string, requiresAuth: boolean, initOptions?: IInitOptions);
     protected abstract resolve(response: Response, options: IRequestOptions): Promise<any>;
     fetch(url: string, options: IRequestOptions): Promise<any>;
