@@ -1,22 +1,23 @@
-import {AuthSchemes, HttpMethods} from './Enums';
+import { AuthSchemes, HttpMethods } from './Enums';
 import AuthService from './AuthService';
-import ILoadingProvider from './ILoadingProvider';
+import ISqdProvider from './ISqdProvider';
 import IInitOptions from './IInitOptions';
+import IRequestOptions from './IRequestOptions';
 
 export default abstract class AbstractApi {
   readonly apiRoot: string;
   readonly apiRequiresAuth: boolean;
   hasAuthService: boolean = false;
   private readonly authService?: AuthService;
-  protected readonly loadingProvider?: ILoadingProvider;
+  protected readonly sqdProviders: ISqdProvider[];
 
   constructor(apiRoot: string, requiresAuth: boolean, initOptions: IInitOptions = {}) {
     const {
       getToken,
-      authScheme,
-      loadingProvider
+      authScheme
     } = initOptions;
 
+    this.sqdProviders = [];
     this.apiRoot = apiRoot;
     this.apiRequiresAuth = requiresAuth;
     if (requiresAuth) {
@@ -26,33 +27,18 @@ export default abstract class AbstractApi {
       this.authService = new AuthService(authScheme || AuthSchemes.Bearer, getToken);
       this.hasAuthService = true;
     }
-
-    if (!!loadingProvider) {
-      if (!loadingProvider.onBegin || !loadingProvider.onResolve) {
-        throw new Error('Must provide an `onBegin` and and `onResolve` function to loadingProvider');
-      }
-      this.loadingProvider = loadingProvider;
-    }
   }
 
-  protected abstract async resolve(response: Response, handleLoading: boolean): Promise<any>;
+  protected abstract async resolve(response: Response, options: IRequestOptions): Promise<any>;
 
   async fetch(url: string, options: IRequestOptions): Promise<any> {
-    // we should handle loading by default if there's a loading provider and no `handleLoading`
-    // key in our options object. Otherwise, if there is a loading provider, we go by the value of the
-    // handleLoading option. If no loadingProvider, we will never handle loading.
-    let handleLoading = false;
-    if (!!this.loadingProvider) {
-      handleLoading = !(options.hasOwnProperty('handleLoading') && options.handleLoading === false);
-    }
-
     if (this.apiRequiresAuth) {
       if (!this.authService) {
         throw new Error('Api requires authentication, but AuthService was not initialized.');
       }
 
-      if (handleLoading && !!this.loadingProvider) {
-        this.loadingProvider.onBegin();
+      for (const provider of this.sqdProviders) {
+        provider.onBegin(options);
       }
 
       this.authService.setToken();
@@ -68,8 +54,9 @@ export default abstract class AbstractApi {
     try {
       response = await fetch(request);
     } catch (e) {
-      if (!!this.loadingProvider && handleLoading) {
-        this.loadingProvider.onResolve();
+      for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+        const provider = this.sqdProviders[i];
+        provider.onFail(options, response, e);
       }
 
       throw e;
@@ -77,7 +64,7 @@ export default abstract class AbstractApi {
 
     // if Promise.reject gets called for HTTP status code,
     // the caller is expected to catch and handle it.
-    return await this.resolve(response, handleLoading);
+    return await this.resolve(response, options);
   }
 
   async get(url: string, options?: IRequestOptions): Promise<any> {
@@ -109,12 +96,32 @@ export default abstract class AbstractApi {
     const headers = options && options.headers ? options.headers : {};
     return options ? { ...options, method, headers, body: options.body } : { method, headers };
   }
-}
 
-interface IRequestOptions extends RequestInit {
-  handleLoading?: boolean;
-}
+  public addSqdProvider(provider: ISqdProvider): AbstractApi {
+    if (provider.onBegin && provider.onResolve && provider.onFail) {
+      this.sqdProviders.push(provider);
+    }
+    return this;
+  }
 
-class FetchError extends Error {
-  response?: any;
+  public hasSqdProvider(provider: ISqdProvider): boolean {
+    return this.sqdProviders.includes(provider);
+  }
+
+  public indexOfSqdProvider(provider: ISqdProvider): number {
+    return this.sqdProviders.indexOf(provider);
+  }
+
+  public deleteSqdProvider(provider: ISqdProvider): boolean {
+    const index = this.indexOfSqdProvider(provider);
+    if (index < 0) return false;
+    return this.deleteSqdProviderByIndex(index);
+  }
+
+  public deleteSqdProviderByIndex(index: number): boolean {
+    const length = this.sqdProviders.length;
+    if (index < 0 || index >= length) return false;
+    this.sqdProviders.splice(index, 1);
+    return this.sqdProviders.length < length;
+  }
 }

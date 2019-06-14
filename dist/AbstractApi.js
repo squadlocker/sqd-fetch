@@ -8,7 +8,8 @@ const AuthService_1 = __importDefault(require("./AuthService"));
 class AbstractApi {
     constructor(apiRoot, requiresAuth, initOptions = {}) {
         this.hasAuthService = false;
-        const { getToken, authScheme, loadingProvider } = initOptions;
+        const { getToken, authScheme } = initOptions;
+        this.sqdProviders = [];
         this.apiRoot = apiRoot;
         this.apiRequiresAuth = requiresAuth;
         if (requiresAuth) {
@@ -18,27 +19,14 @@ class AbstractApi {
             this.authService = new AuthService_1.default(authScheme || Enums_1.AuthSchemes.Bearer, getToken);
             this.hasAuthService = true;
         }
-        if (!!loadingProvider) {
-            if (!loadingProvider.onBegin || !loadingProvider.onResolve) {
-                throw new Error('Must provide an `onBegin` and and `onResolve` function to loadingProvider');
-            }
-            this.loadingProvider = loadingProvider;
-        }
     }
     async fetch(url, options) {
-        // we should handle loading by default if there's a loading provider and no `handleLoading`
-        // key in our options object. Otherwise, if there is a loading provider, we go by the value of the
-        // handleLoading option. If no loadingProvider, we will never handle loading.
-        let handleLoading = false;
-        if (!!this.loadingProvider) {
-            handleLoading = !(options.hasOwnProperty('handleLoading') && options.handleLoading === false);
-        }
         if (this.apiRequiresAuth) {
             if (!this.authService) {
                 throw new Error('Api requires authentication, but AuthService was not initialized.');
             }
-            if (handleLoading && !!this.loadingProvider) {
-                this.loadingProvider.onBegin();
+            for (const provider of this.sqdProviders) {
+                provider.onBegin(options);
             }
             this.authService.setToken();
             options.headers = Object.assign({}, options.headers, { Authorization: `${this.authService.authScheme} ${this.authService.getToken()}` });
@@ -50,14 +38,15 @@ class AbstractApi {
             response = await fetch(request);
         }
         catch (e) {
-            if (!!this.loadingProvider && handleLoading) {
-                this.loadingProvider.onResolve();
+            for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+                const provider = this.sqdProviders[i];
+                provider.onFail(options, response, e);
             }
             throw e;
         }
         // if Promise.reject gets called for HTTP status code,
         // the caller is expected to catch and handle it.
-        return await this.resolve(response, handleLoading);
+        return await this.resolve(response, options);
     }
     async get(url, options) {
         const fetchOptions = this.createRequestInit(Enums_1.HttpMethods.GET, options);
@@ -83,7 +72,30 @@ class AbstractApi {
         const headers = options && options.headers ? options.headers : {};
         return options ? Object.assign({}, options, { method, headers, body: options.body }) : { method, headers };
     }
+    addSqdProvider(provider) {
+        if (provider.onBegin && provider.onResolve && provider.onFail) {
+            this.sqdProviders.push(provider);
+        }
+        return this;
+    }
+    hasSqdProvider(provider) {
+        return this.sqdProviders.includes(provider);
+    }
+    indexOfSqdProvider(provider) {
+        return this.sqdProviders.indexOf(provider);
+    }
+    deleteSqdProvider(provider) {
+        const index = this.indexOfSqdProvider(provider);
+        if (index < 0)
+            return false;
+        return this.deleteSqdProviderByIndex(index);
+    }
+    deleteSqdProviderByIndex(index) {
+        const length = this.sqdProviders.length;
+        if (index < 0 || index >= length)
+            return false;
+        this.sqdProviders.splice(index, 1);
+        return this.sqdProviders.length < length;
+    }
 }
 exports.default = AbstractApi;
-class FetchError extends Error {
-}

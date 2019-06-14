@@ -1,10 +1,12 @@
 import IApi from './IApi';
 import AbstractApi from './AbstractApi';
+import IRequestOptions from './IRequestOptions';
 
 export default class Api extends AbstractApi implements IApi {
-  protected async resolve(response: Response, handleLoading: boolean): Promise<any> {
-    if (!!this.loadingProvider && handleLoading) {
-      this.loadingProvider.onResolve();
+  protected async resolve(response: Response, options: IRequestOptions): Promise<any> {
+    for (let i = this.sqdProviders.length - 1; i >= 0; i--) {
+      const provider = this.sqdProviders[i];
+      provider.onResolve(options, response);
     }
 
     if (response.status === 204) {
