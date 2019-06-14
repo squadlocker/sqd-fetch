@@ -97,28 +97,28 @@ export default abstract class AbstractApi {
     return options ? { ...options, method, headers, body: options.body } : { method, headers };
   }
 
-  public addSqdProvider(provider:ISqdProvider): AbstractApi {
+  public addSqdProvider(provider: ISqdProvider): AbstractApi {
     if (provider.onBegin && provider.onResolve && provider.onFail) {
       this.sqdProviders.push(provider);
     }
     return this;
   }
 
-  public hasSqdProvider(provider:ISqdProvider): boolean {
+  public hasSqdProvider(provider: ISqdProvider): boolean {
     return this.sqdProviders.includes(provider);
   }
 
-  public indexOfSqdProvider(provider:ISqdProvider): number {
+  public indexOfSqdProvider(provider: ISqdProvider): number {
     return this.sqdProviders.indexOf(provider);
   }
 
-  public deleteSqdProvider(provider:ISqdProvider): boolean {
+  public deleteSqdProvider(provider: ISqdProvider): boolean {
     const index = this.indexOfSqdProvider(provider);
     if (index < 0) return false;
     return this.deleteSqdProviderByIndex(index);
   }
 
-  public deleteSqdProviderByIndex(index:number): boolean {
+  public deleteSqdProviderByIndex(index: number): boolean {
     const length = this.sqdProviders.length;
     if (index < 0 || index >= length) return false;
     this.sqdProviders.splice(index, 1);
